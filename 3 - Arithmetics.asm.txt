@@ -1,0 +1,30 @@
+; Assignment 3, by Leonardo Blas.
+;In this assignment, we assign values to the EAX, EBX, ECX, AND EDX registers,
+;and perform basic arithmetic calculations with their values. Finally, we
+;display the registers' values.
+
+INCLUDE Irvine32.inc
+
+	.386
+	.model flat,stdcall
+	.stack 4096
+	ExitProcess PROTO, dwExitCode:DWORD
+
+.data
+	sum DWORD 0
+
+.code
+main PROC
+
+	mov	eax,9
+	mov	ebx,8
+	mov	ecx,7
+	mov	edx,6
+	add	eax,ebx
+	add	ecx,edx
+	sub	eax,ecx
+
+	call DumpRegs
+	exit
+main ENDP
+END main

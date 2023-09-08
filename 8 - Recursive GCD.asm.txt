@@ -1,0 +1,120 @@
+COMMENT @
+Assignment 8, by Leonardo Blas
+For this program, we are given two int arrays and are asked to recursively
+calculate the GCD of the pairs formed by these arrays, an store these values
+in arrayZ.
+Since arrayX[i] > arrayY[i], we don't check for which parameter should be the
+divisor or the dividend.
+Finally, we are asked to create a prototype for a procedure that checks for
+equality between arrayY[i] and arrayZ[i], to count up if they do, store the
+value in EAX, and restore any registers used other than EAX.
+@
+
+INCLUDE	Irvine32.inc
+INCLUDE	macros.inc
+EqCount	PROTO,
+	arrayYPtr:ptr	sdword,
+	arrayZPtr:ptr	sdword,
+	arraySize:dword
+
+.data
+	x		sdword	?
+	y		sdword	?
+	arrayX	sdword	20, 9, 432, 24, 49, 339, 63
+	arrayY	sdword	5, 7, 226, 18, 7, 9, 9
+	arrayZ	sdword	lengthof arrayX	DUP(?)
+.code
+main	PROC
+	mwrite	"Procedure 1-------------------------------"
+	call		crlf
+	mov		ecx,	lengthof arrayX
+	mov		esi, 0
+L1:
+	mov		eax, arrayX[esi*4]	; 4 bits offset
+	mov		x, eax			; using helper variable x
+	mwrite	"("
+	call		writeint
+	mov		eax, arrayY[esi*4]	; 4 bits offset
+	mov		y, eax			; using helper variable y
+	mwrite	", "
+	call		writeint
+	mwrite	")"
+	call		GCDFunction		; call recursive GCD function
+	mov		arrayZ[esi*4], eax	; store GCD in arrayZ[i]
+	mwrite	"	GCD = "
+	call		writeint
+	call		crlf
+	inc		esi
+	loop		L1
+	call		crlf
+	mwrite	"Procedure 2-------------------------------"
+	call		crlf
+	invoke	EqCount,			; invoking procedure 2
+		addr	arrayY,
+		addr arrayZ,
+		lengthof arrayY
+	mwrite	"EAX = "
+	call		writeint
+	exit
+main	ENDP
+
+GCDFunction	PROC
+	cmp		y, 0
+	jle		termination
+	mov		edx,	0
+	mov		eax,	x
+	mov		ebx, y
+	div		ebx
+	mov		eax, y
+	mov		x, eax
+	mov		y, edx
+	call		GCDFunction
+termination:
+	mov		eax, x
+	ret
+GCDFunction	ENDP
+
+EqCount		PROC	USES	esi edi ebx ecx edx,
+	arrayYPtr:ptr	sdword,
+	arrayZPtr:ptr	sdword,
+	arraySize:dword
+
+	mov		ecx, 0
+	mov		esi, arrayYPtr
+	mov		edi, arrayZPtr
+	mov		eax, 0
+beginwhile:
+	cmp		ecx, arraySize
+	jge		termination
+	mov		ebx, [esi]
+	mov		edx,	[edi]
+	add		esi, 4
+	add		edi, 4
+	inc		ecx
+	cmp		ebx, edx
+	je		equalCounter
+	jmp		beginwhile
+equalCounter:
+	inc		eax
+	jmp		beginwhile
+termination:
+	ret
+EqCount		ENDP
+
+END	main
+
+COMMENT @
+SAMPLE RUN:
+
+Procedure 1-------------------------------
+(+20, +5)       GCD = +5
+(+9, +7)        GCD = +1
+(+432, +226)    GCD = +2
+(+24, +18)      GCD = +6
+(+49, +7)       GCD = +7
+(+339, +9)      GCD = +3
+(+63, +9)       GCD = +9
+
+Procedure 2-------------------------------
+EAX = +3
+@

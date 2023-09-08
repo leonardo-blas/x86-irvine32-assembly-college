@@ -1,0 +1,87 @@
+COMMENT @
+Assignment 7, by Leonardo Blas.
+In this program, we calculate the GCD of two signed integers.
+Zero might be used as one of the integers and--depending on our definition of
+GCD--we'll get a valid value. If zero is used twice, it will return 0, but
+that's an incorrect value: lim a->0 (0/a) = undef
+@
+
+INCLUDE Irvine32.inc
+INCLUDE macros.inc
+KEY = 239 ; any value between 1-255
+BUFMAX = 128 ; maximum buffer size
+
+.data
+	x		sdword	?
+	y		sdword	?
+.code
+main PROC
+	mov		ecx, 3
+L1:
+	mWrite	"This program calculates the GCD between integers x and y"
+	call		Crlf
+	mWrite	"x = "
+	call		ReadInt
+	mov		x, eax
+	fild		x
+	fabs
+	fist		x
+	mWrite	"y = "
+	call		ReadInt
+	mov		y, eax
+	fild		y
+	fabs
+	fist		y
+	call		GCDFunction
+	MWrite	"GCD = "
+	call		WriteInt
+	call		Crlf
+	call		Crlf
+	loop		L1
+	exit
+main	 ENDP
+
+GCDFunction	PROC
+	mov		eax, y
+	cmp		x, eax
+	ja		beginwhile	; if x > eax, jump to loop
+	mov		eax, x		; if y > x, swap x with y
+	mov		ebx, y
+	mov		x, ebx
+	mov		y, eax
+beginwhile:
+	cmp		y, 0
+	jle		endwhile
+	mov		edx,	0
+	mov		eax,	x
+	mov		ebx, y
+	div		ebx
+	mov		eax, y
+	mov		x, eax
+	mov		y, edx
+	jmp		beginwhile
+endwhile:
+	mov		eax, x
+	ret
+GCDFunction	ENDP
+
+END main
+
+COMMENT @
+SAMPLE RUN:
+
+This program calculates the GCD between integers x and y
+x = 11
+y = 121
+GCD = +11
+
+This program calculates the GCD between integers x and y
+x = -99
+y = 1011
+GCD = +3
+
+This program calculates the GCD between integers x and y
+x = 0
+y = -123
+GCD = +123
+@

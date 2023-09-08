@@ -1,0 +1,76 @@
+; Assignment 4, by Leonardo Blas.
+;In this assignment, we write a program that loops and through a string
+;and copies its characters into a target string, in reverse, as well as
+;rotating the inverted string forward by 4 positions.
+;Read comments on L2.
+
+INCLUDE Irvine32.inc
+
+	.386
+	.stack 4096
+	ExitProcess PROTO, dwExitCode:dword
+
+.data
+	source	BYTE  "This is the source string",0
+	target	BYTE  SIZEOF source DUP('#')
+
+.code
+main proc
+	mov	esi, 0				; index register
+	mov	edi, SIZEOF source - 2	; second index register
+	mov	ecx, SIZEOF source		; loop counter
+
+; Part A:
+L1:
+	mov	al, source[edi]		; get a character from source
+	mov	target[esi], al		; store it in the target
+	inc	esi					; move to next character in source
+	dec	edi					; move to the prev. char in target
+	call	DumpRegs
+	loop L1
+
+	mov	edx, offset target
+	call	writestring
+
+; Part B:
+
+; An algorithm that only employs only one loop doesn't seem feasible,
+; as the string has 25 characters (26 if counting the null), and we
+; are asked for a rotation of 4 steps: 25 or 26 divided by 4 is not
+; an integer; had it been, it would have been possible to do it
+; in a single or nested loop.
+
+; Most practical way, without an algorithm: Make a copy of target
+; and play with both strings.
+
+	invoke	str_copy, addr target, addr source
+
+	mov	esi, sizeof source - 5	; Taking last 4 chars.
+	mov	edi, 0
+	mov	ecx,	4	; Rotating the 4 last characters ahead.
+
+L2:
+	mov	al, source[esi]
+	mov	target[edi], al
+	inc	edi
+	inc	esi
+	call	Dumpregs
+	loop	L2
+
+	mov	esi, 4
+	mov	edi, 0	; Rotating from the beginning.
+	mov	ecx, sizeof source - 5	; Rotating until this point.
+L3:
+	mov	al, source[edi]
+	mov	target[esi], al
+	inc esi
+	inc edi
+	call	DumpRegs
+	loop L3
+	
+	mov	edx, offset target
+	call	writestring
+
+	exit
+main endp
+end main

@@ -1,0 +1,86 @@
+COMMENT @
+Assignment 9, by Leonardo Blas
+In this assignment, we write an assembly language subroutine that receives two
+input parameters: the offset of an array and the array's size.  It must return
+a count of the longest increasing sequence of integer values.
+@
+
+INCLUDE			Irvine32.inc
+INCLUDE			macros.inc
+LngstIncSeq		PROTO,
+	arrayOffset:	dword,
+	arraySize:	dword
+
+.data
+	arrayX		dword	0,1,2,3,4,5,6,7,0,1,2,3,8,7,8,9,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,6,7,8,9,10,11,12
+	arrayXLength	dword	lengthof arrayX
+	arrayXOffset	dword	offset arrayX
+
+.code
+main	PROC
+	invoke		LngstIncSeq,
+		arrayXOffset,
+		arrayXLength
+	exit
+main	ENDP
+
+LngstIncSeq		PROC	USES	esi edi ebx ecx edx,
+	arrayOffset:	dword,
+	arraySize:	dword
+
+	mov			ecx, arraySize
+	mov			esi, 0
+	mov			edi, 0
+	mov			edx, 0
+L1:
+	mov			eax, arrayOffset
+	mov			eax, [eax + esi * 4]
+
+	mov			ebx, esi
+	add			ebx, 1
+	cmp			ebx, arraySize
+	jg			Tail
+
+	mov			ebx, arrayOffset
+	mov			ebx, [ebx + 4 + esi * 4]
+
+	inc			esi
+
+	cmp			eax, ebx
+	jl			Advance
+	jmp			Restart
+	loop			L1
+
+Advance:
+	inc			edi
+	jmp			L1
+Restart:
+	add			edi, 1				; edi counts the "spaces," not the "blocks"
+	cmp			edx, edi
+	jl			SaveNewLength
+	mov			edi, 0
+	jmp			L1
+SaveNewLength:
+	mov			edx, edi
+	mov			edi, 0
+	jmp			L1
+Tail:
+	cmp			edx, edi
+	jl			SaveLastLength
+	jmp			PrintResult
+SaveLastLength:
+	mov			edx, edi
+	jmp			PrintResult
+PrintResult:
+	mov			eax, edx
+	mwrite		"Count of the longest increasing sequence of integers = "
+	call			writeint
+	ret
+LngstIncSeq		ENDP
+
+END	main
+
+COMMENT @
+SAMPLE RUN:
+Count of the longest increasing sequence of integers = +13
+@
